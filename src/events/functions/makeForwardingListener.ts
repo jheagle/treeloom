@@ -5,8 +5,9 @@
 import type { DomItem } from '../../domItem/types'
 import type { EventProxy, ForwardedEvent, ForwardEventsFunction, ListenerFunction } from '../types'
 
-/** Form-control elements whose state a listener might read directly off the event target. */
-const FORM_CONTROL_TAGS = ['INPUT', 'SELECT', 'TEXTAREA']
+/** Form-control elements whose state a listener might read directly off the event target (see receiveForwardedEvent,
+ * which only replays state onto these). */
+export const FORM_CONTROL_TAGS = ['INPUT', 'SELECT', 'TEXTAREA']
 
 /**
  * Whatever live state a listener commonly reads directly off the real event's target - a checkbox's checked, an

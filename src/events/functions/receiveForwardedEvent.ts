@@ -4,6 +4,7 @@
 
 import { getItemById } from '../../domItem/tree/itemIdIndex'
 import type { DomItem, DomItemRoot } from '../../domItem/types'
+import { FORM_CONTROL_TAGS } from './makeForwardingListener'
 import type { ForwardedEvent } from '../types'
 
 /**
@@ -14,8 +15,31 @@ import type { ForwardedEvent } from '../types'
 export type ForwardedEventValidator = (resolvedItem: DomItem, envelope: ForwardedEvent) => boolean
 
 /**
+ * Replay an envelope's targetState onto the element it resolved to - only what captureTargetState (the sending
+ * end) ever puts there: a string `value` or a boolean `checked`, and only onto a form control. The envelope comes
+ * from another machine (a browser, for a server), so it can hold anything; copying every key across (as this once
+ * did with Object.assign) let a hand-built envelope set any property on the receiving element: its methods, its
+ * `innerHTML`, or its prototype through a JSON `__proto__` key.
+ * @param element
+ * @param targetState
+ */
+const applyTargetState = (element: HTMLElement & Partial<HTMLInputElement>, targetState: unknown): void => {
+  if (typeof targetState !== 'object' || targetState === null || !FORM_CONTROL_TAGS.includes(element.tagName)) {
+    return
+  }
+  const { value, checked } = targetState as Record<string, unknown>
+  if (typeof value === 'string') {
+    element.value = value
+  }
+  if (typeof checked === 'boolean') {
+    element.checked = checked
+  }
+}
+
+/**
  * The receiving end of makeForwardingListener's envelope: resolve the item it was built for, replay any live target
- * state it carried onto that item's real element (see captureTargetState in makeForwardingListener), then dispatch
+ * state it carried onto that item's real element (see applyTargetState and makeForwardingListener's
+ * captureTargetState), then dispatch
  * a real event of the same type on it. The resolved item's own, already-bound listener runs exactly as it would for
  * a genuine local event - nothing here needs to know what that listener does.
  * @param root - The tree to resolve the envelope's itemId against. Its listeners must be the real ones (not
@@ -35,9 +59,7 @@ const receiveForwardedEvent = (root: DomItemRoot, envelope: ForwardedEvent, vali
   if (!element) {
     throw new Error('The resolved item has no element to dispatch the event on.')
   }
-  if (envelope.targetState) {
-    Object.assign(element, envelope.targetState)
-  }
+  applyTargetState(element, envelope.targetState)
   element.dispatchEvent(new Event(envelope.eventType, { bubbles: true, cancelable: true }))
 }
 
