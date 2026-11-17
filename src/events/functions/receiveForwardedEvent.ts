@@ -4,7 +4,7 @@
 
 import { getItemById } from '../../domItem/tree/itemIdIndex'
 import type { DomItem, DomItemRoot } from '../../domItem/types'
-import { FORM_CONTROL_TAGS } from './makeForwardingListener'
+import { isFormControl } from './makeForwardingListener'
 import type { ForwardedEvent } from '../types'
 
 /**
@@ -24,7 +24,7 @@ export type ForwardedEventValidator = (resolvedItem: DomItem, envelope: Forwarde
  * @param targetState
  */
 const applyTargetState = (element: HTMLElement & Partial<HTMLInputElement>, targetState: unknown): void => {
-  if (typeof targetState !== 'object' || targetState === null || !FORM_CONTROL_TAGS.includes(element.tagName)) {
+  if (typeof targetState !== 'object' || targetState === null || !isFormControl(element)) {
     return
   }
   const { value, checked } = targetState as Record<string, unknown>
