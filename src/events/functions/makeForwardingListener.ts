@@ -10,6 +10,16 @@ import type { EventProxy, ForwardedEvent, ForwardEventsFunction, ListenerFunctio
 export const FORM_CONTROL_TAGS = ['INPUT', 'SELECT', 'TEXTAREA']
 
 /**
+ * Whether an element is a form control (see FORM_CONTROL_TAGS), whatever case its tagName is in: browsers report
+ * HTML tag names in upper case, but a DOM built some other way may not (pseudo-dom, used for a server-side tree,
+ * keeps the case createElement was given, so 'input'). Comparing as-is let a checkbox's state be dropped on such a
+ * receiver, so the listener there read it as unchecked.
+ * @param element
+ */
+export const isFormControl = (element: { tagName?: unknown } | null | undefined): boolean =>
+  typeof element?.tagName === 'string' && FORM_CONTROL_TAGS.includes(element.tagName.toUpperCase())
+
+/**
  * Whatever live state a listener commonly reads directly off the real event's target - a checkbox's checked, an
  * input's value - captured here since the receiving end's corresponding element is otherwise an independent object
  * with no way to know what the user actually set. Omitted for anything that is not a form control (every element
@@ -19,7 +29,7 @@ export const FORM_CONTROL_TAGS = ['INPUT', 'SELECT', 'TEXTAREA']
  */
 const captureTargetState = (target: EventTarget | null): ForwardedEvent['targetState'] => {
   const element = target as { tagName: string, type?: string, checked?: boolean, value?: string } | null
-  if (!element || !FORM_CONTROL_TAGS.includes(element.tagName)) {
+  if (!element || !isFormControl(element)) {
     return undefined
   }
   return element.type === 'checkbox' || element.type === 'radio'

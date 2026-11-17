@@ -87,6 +87,26 @@ describe('receiveForwardedEvent (end to end)', () => {
     expect(seen).toHaveBeenCalledTimes(1)
   })
 
+  test('replays checked onto a checkbox whose DOM reports a lower-case tagName (pseudo-dom on a server)', () => {
+    const { root, field, seen } = formRoot('input', 'checkbox')
+    Object.defineProperty(field.element, 'tagName', { value: 'input' })
+    receiveForwardedEvent(root, { itemId: field.id, eventType: 'change', listenerFunc: 'seen', data: [], targetState: { checked: true } })
+    expect(field.element.checked).toBe(true)
+    expect(seen).toHaveBeenCalledTimes(1)
+  })
+
+  test('replays a value onto a select whose DOM reports a lower-case tagName', () => {
+    const { root, field } = formRoot('select')
+    for (const value of ['off', 'on']) {
+      const option = document.createElement('option')
+      option.value = value
+      field.element.appendChild(option)
+    }
+    Object.defineProperty(field.element, 'tagName', { value: 'select' })
+    receiveForwardedEvent(root, { itemId: field.id, eventType: 'change', listenerFunc: 'seen', data: [], targetState: { value: 'on' } })
+    expect(field.element.value).toBe('on')
+  })
+
   test('targetState only ever sets value or checked: any other key from the envelope is ignored', () => {
     const { root, field, seen } = formRoot('input', 'checkbox')
     const dispatchEvent = field.element.dispatchEvent

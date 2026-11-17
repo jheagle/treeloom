@@ -59,6 +59,14 @@ describe('makeForwardingListener', () => {
     expect(transport).toHaveBeenCalledWith(expect.objectContaining({ targetState: { value: 'hello' } }))
   })
 
+  test('captures a checkbox\'s checked state whatever case its tagName is in', () => {
+    const item = createDomItem({ nodeName: 'input', parentItem: {} })
+    const transport = jest.fn()
+    const forwarder = makeForwardingListener('checkFn', transport)
+    forwarder({ type: 'change', target: { tagName: 'input', type: 'checkbox', checked: true } }, item)
+    expect(transport).toHaveBeenCalledWith(expect.objectContaining({ targetState: { checked: true } }))
+  })
+
   test('omits targetState for a target that is not a form control, such as a button', () => {
     const item = createDomItem({ nodeName: 'button', parentItem: {} })
     const transport = jest.fn()
