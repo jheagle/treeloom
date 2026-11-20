@@ -1,5 +1,7 @@
 # treeloom
 
+[![tests](https://github.com/jheagle/treeloom/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jheagle/treeloom/actions/workflows/tests.yml)
+
 State management with JSON.
 
 treeloom represents a document as a **Virtual DOM**: a tree of plain objects (the **DomItem tree**) which mirrors the
